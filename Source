@@ -215,7 +215,7 @@ class Trie:
         return self.dictionary[current.dictionary_index][0], self.dictionary[current.dictionary_index][1], local_sum
 
 
-### DO NOT CHANGE THIS FUNCTION
+# Function for loading dictionary
 def load_dictionary(filename):
     infile = open(filename)
     word, frequency = "", 0
@@ -237,6 +237,27 @@ def load_dictionary(filename):
 
     return aList
 
-
 if __name__ == '__main__':
+    # Loads Dictionary
     Dictionary = load_dictionary("Dictionary.txt")
+    # Inserts the Dictionary.txt file into the Trie
+    myTrie = Trie(Dictionary)
+    # TEST CASE 1: Search for the most frequented word in the Dictionary with the prefix "a"
+    print(myTrie.prefix_search("a"))
+    # Answer is "aberr" with a prefix frequency of 3000
+
+    # TEST CASE 2: Search for the most frequented word in the Dictionary with the prefix "an"
+    print(myTrie.prefix_search("an"))
+    # Answer is "andantino" with a prefix frequency of 205
+
+    # TEST CASE 3: Search for the most frequented word in the Dictionary with the prefix "ana"
+    print(myTrie.prefix_search("ana"))
+    # Answer is "analeptic" with a prefix frequency of 161
+
+    # TEST CASE 4: Search for the most frequented word in the Dictionary with the prefix "anac"
+    print(myTrie.prefix_search("anac"))
+    # Answer is "anaclastic" with a prefix frequency of 24
+
+    # TEST CASE 5: Search for the most frequented word in the Dictionary with the prefix "anace"
+    print(myTrie.prefix_search("anace"))
+    # Answer is "None" with no frequency as the word does not exist in the Dicitonary
