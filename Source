@@ -239,4 +239,4 @@ def load_dictionary(filename):
 
 
 if __name__ == '__main__':
-    pass
+    Dictionary = load_dictionary("Dictionary.txt")
