@@ -1,0 +1,242 @@
+# This is a sample Python script.
+import math
+
+
+class Node:
+
+    def __init__(self, data=None, size=27, main_root=False, unique=False, dictionary_index=None):
+        """
+        Function description:
+
+        Constructor for Node class where it initializes the important attributes of each node instance which includes
+        the link (list) attr where it stores other nodes in the Trie, the frequency attr to store how frequent a word
+        appears in the dictionary, the sum attr to store the number of times a prefix is inserted into the trie,
+        the probable_node attr to store the next most probable node to traverse to in the trie and the dictionary index
+        that stores the dictionary index of the word
+        """
+        # a list of size 27 to store all alphabets and the terminal symbol
+        self.link = [None] * size
+        # the letter representing the node
+        self.data = data
+        # the frequency of the word appearing in the dictionary
+        self.frequency = 0
+        # the sum frequency of the prefix of this node
+        self.sum = 0
+        # to store the next most probable node to traverse to
+        self.probable_node = None
+        # to indicate if the current node is the source node
+        self.main_root = main_root
+        # to indicate the index of the word in the dictionary
+        self.dictionary_index = dictionary_index
+
+
+class Trie:
+    def __init__(self, dictionary):
+        """
+        Function Description:
+        This function serves as the innit method for the Trie class that with a dictionary as its input it iterates
+        through every word in the dictionary and creates nodes based on the word by calling function insert_word.
+        This function first creates the root node of the tree as a starting point of the trie and insert every word
+        into the trie.
+
+        Approach description:
+        The innit method only serves to initilise the root node of the tree as well as local variables such
+        as self.dictionary and self.root as it will be used in the later function def prefix_search and insert_word.
+        As a result these variables are better declared in the innit as it would be used globally throughout the class.
+
+        Args:
+            dictionary: A .txt file containing a list of lists containing the word, the word's definition and the word's
+            frequency in the dictionary
+
+        Returns:
+            A trie tree that has taken into account every word in the dictionary, where each sequence of nodes from the
+            root that leads to a terminal node represents a unique word in the dictionary
+
+        Complexity:
+            The innit method iterates through every word in the dictionary and the insert_word function iterates
+            through every char of the provided word so:
+            -   worst case time complexity: O(T)
+                where T represents the total numbers of characters for each word in the dictionary
+            -   best case time complexity: 0(T)
+                where T represents the total numbers of characters for each word in the dictionary
+            -   Best space complexity: O(log T)
+                where T represents the total numbers of characters for each word in the dictionary it is log T as
+                similar word that share the same prefix would not to need to create new nodes
+            -   Worst case space complexity: O(T)
+                where every word is unique meaning they do not share the same prefix
+        """
+        # the dictionary.txt variable
+        self.dictionary = dictionary
+        # initialise root node for the trie
+        self.root = Node(main_root=True)
+        # traverse to the root node as the current node
+        current = self.root
+        # insert each character for every sentence recursively
+        dictionary_index = 0
+        # iterate through every word in the dictionary
+        for sentences in dictionary:
+            # call the insert word function by inputing the word
+            self.insert_word(root=current, word=sentences[0] + '$', str_index=0, dictionary_index=dictionary_index)
+            # increase the dictionary_index at every iteration
+            dictionary_index += 1
+
+    def insert_word(self, root, word, str_index, dictionary_index):
+        """
+        Function description:
+        This function serves as a helper function to insert every character for every word in the dictionary by
+        construction nodes and linking them together in the current.link list
+
+        Approach description:
+        The function starts at the root of the trie at every call and loops through each character in the word. The
+        sum attr of the node is first incremented representing the total number of times this prefix has been used/
+        traversed to. The index attr calculated the ascii value of the char and also takes into account the '$' terminal
+        symbol that helps determine the index to store the given char in the current.link list. If the char is not
+        found in the link list at their ascii index then it is a new prefix and thus a new node is created and inserted
+        into the link list at that index. The following 3 cases are then considered. Case 1: If the word frequency
+        in the dictionary is more than the local frequency then this word has a higher precedence over the previous
+        word and thus the new frequency is the new word's dictionary frequency and the most probable node is also
+        saved to this node. Case 2: if their frequencies are the same the lexicographically smaller character
+        has higher precedence and its frequency and node is saved as the most probable node. Case 3: the word's
+        frequency in the dictionary is lesser than the previous word frequency thus it has lower precedence so nothing
+        is changed. After this checking is done the next word is checked.
+
+        Args:
+            root: An instance of the node class that represents the root of the trie
+            word: A string of characters that can be found in the dictionary
+            str_index: The index of the char in the word
+            dictionary_index: The index of the word in the dictionary
+
+        Returns:
+                Returns when each word has been successfully inserted into the trie
+
+        Complexity:
+            Worst case time complexity: O(L) where L represented the number of characters in each word
+            Best case time complexity: O(L) where L represented the number of characters in each word
+            Space complexity: O(1) only new nodes are created
+        """
+        # traverse to the current node
+        current = root
+        # keep looping through every letter in the sentence
+        while str_index < len(word):
+            # increase the prefix frequency of the node
+            current.sum += 1
+            # if the current character is the terminal end symbol its index is set to zero
+            if word[str_index] == '$':
+                index = 0
+            else:
+                # formula for calculating ascii umber of alphabet and accounting for terminal symbol
+                index = ord(word[str_index]) - 97 + 1
+            # if it is a unique word it initialises a new node using the char as the data for the new word
+            if current.link[index] is None:
+                # initialise new node for new alphabet
+                current.link[index] = Node(data=word[str_index])
+
+            # if the word's dictionary frequency is higher than the previous word's frequency that share the same prefix
+            if self.dictionary[dictionary_index][2] > current.frequency:
+                # change the current frequency to the new global maximum frequency (new word's dictionary frequency)
+                current.frequency = self.dictionary[dictionary_index][2]
+                # the new probable node is the index of the next char of the word
+                current.probable_node = current.link[index]
+                # update the dictionary index to the current word
+                current.dictionary_index = dictionary_index
+            # if the frequencies are both the same we compare lexicographically
+            elif self.dictionary[dictionary_index][2] == current.frequency:
+                # if the current letter is lexicographically smaller than the most probable node's letter
+                if index < ord(current.probable_node.data) - 97 + 1:
+                    # lexicographically smaller letter is chosen as most probable node
+                    current.dictionary_index = dictionary_index
+                    current.probable_node = current.link[index]
+            # traverse to the next node
+            current = current.link[index]
+            # current dictionary index is the index of the word in the dictionary
+            current.dictionary_index = dictionary_index
+            # if the current node is the terminal node
+            if current.data == '$':
+                # its prefix frequency is always the same as the frequency in the dictionary
+                current.sum = self.dictionary[dictionary_index][2] 
+            # increment the index to check the next char in the word
+            str_index += 1
+
+    def prefix_search(self, prefix):
+        """
+        Function description:
+        This function returns the word along with the definition of the word and total frequency with the highest
+        frequency according to the given prefix
+
+        Approach description:
+        The current is first set to the root node of the trie and at every iteration we traverse down the trie based
+        on the char in the prefix's ascii value that corresponds to the index in the current.link list. If the index
+        is empty in the link list means the word does not exist and its returned None. If the prefix is found but
+        is not a complete word keep traversing down the trie by traversing through the probable_node attr in every
+        node until a terminal node is reached and the word is returned
+        Args:
+            prefix: A strings of chars to be searched for in the trie
+
+        Returns:
+            The most probable word based on the given prefix, the definition of the word as well as the frequency of
+            the prefix
+
+        Complexity:
+            Best case time complexity:
+            O(N) where N is the length of the prefix which may also represent an existing completed word in the trie
+
+            Worst case time complexity:
+            O(M + N) where M is the length of the prefix entered by the user and N is the total number of characters in
+            the word with the highest frequency and its definition
+        """
+        # traverse to the root node of the trie
+        current = self.root
+        # loop through every word of our prefix
+        for chars in prefix:
+            # calculate the ascii value for the index in the link list
+            index = ord(chars) - 97 + 1
+            # if the letter cannot be found in the trie means it doesn't exist in the trie
+            if current.link[index] is None:
+                # return None
+                return None, None, 0
+
+            else:
+                # traverse down the trie using the index of the letter
+                current = current.link[index]
+
+        # if it is not a word in the dictionary
+        if current.link[0] != '$':
+            # the frequency to be returned is set to the frequency of the prefix
+            local_sum = current.sum
+            # this while loop is only reached if the prefix provided is a prefix and is not a word that exist in
+            # the trie thus the node with the highest frequency is chosen and traverses down the trie
+            # keep looping as long as the terminal node is not reached
+            while current.data != '$':
+                current = current.probable_node
+        else:
+            # if it is an existing word in the dictionary then the word's dictionary frequncy is returned
+            local_sum = current.frequency
+
+        return self.dictionary[current.dictionary_index][0], self.dictionary[current.dictionary_index][1], local_sum
+
+
+### DO NOT CHANGE THIS FUNCTION
+def load_dictionary(filename):
+    infile = open(filename)
+    word, frequency = "", 0
+    aList = []
+    for line in infile:
+        line.strip()
+        if line[0:4] == "word":
+            line = line.replace("word: ", "")
+            line = line.strip()
+            word = line
+        elif line[0:4] == "freq":
+            line = line.replace("frequency: ", "")
+            frequency = int(line)
+        elif line[0:4] == "defi":
+            index = len(aList)
+            line = line.replace("definition: ", "")
+            definition = line.replace("\n", "")
+            aList.append([word, definition, frequency])
+
+    return aList
+
+
+if __name__ == '__main__':
+    pass
